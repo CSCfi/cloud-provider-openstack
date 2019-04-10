@@ -17,6 +17,11 @@ limitations under the License.
 package cinder
 
 import (
+	"fmt"
+	"io/ioutil"
+	"path"
+	"strings"
+
 	"github.com/container-storage-interface/spec/lib/go/csi/v0"
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -31,11 +36,46 @@ type nodeServer struct {
 	*csicommon.DefaultNodeServer
 }
 
+// getDevicePathBySerialID returns the path of an attached block storage volume, specified by its id.
+func getDevicePathBySerialID(volumeID string) (string, error) {
+	// Build a list of candidate device paths.
+	// Certain Nova drivers will set the disk serial ID, including the Cinder volume id.
+	candidateDeviceNodes := []string{
+		// KVM
+		fmt.Sprintf("virtio-%s", volumeID[:20]),
+		// KVM virtio-scsi
+		fmt.Sprintf("scsi-0QEMU_QEMU_HARDDISK_%s", volumeID[:20]),
+		// ESXi
+		fmt.Sprintf("wwn-0x%s", strings.Replace(volumeID, "-", "", -1)),
+	}
+
+	files, _ := ioutil.ReadDir("/dev/disk/by-id/")
+
+	for _, f := range files {
+		for _, c := range candidateDeviceNodes {
+			if c == f.Name() {
+				glog.V(4).Infof("Found disk attached as %q; full devicepath: %s\n", f.Name(), path.Join("/dev/disk/by-id/", f.Name()))
+				return path.Join("/dev/disk/by-id/", f.Name()), nil
+			}
+		}
+	}
+
+	glog.V(4).Infof("Failed to find device for the volumeID: %q by serial ID", volumeID)
+	return "", status.Error(codes.Internal, "Failed to find device by volume ID")
+}
+
 func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 
 	targetPath := req.GetTargetPath()
 	fsType := req.GetVolumeCapability().GetMount().GetFsType()
-	devicePath := req.GetPublishInfo()["DevicePath"]
+	volumeID := req.GetVolumeId()
+
+	// Get device path by ID
+	devicePath, err := getDevicePathBySerialID(volumeID)
+	if err != nil {
+		glog.V(3).Infof("Failed to getDevicePathBySerialID: %v", err)
+		return nil, err
+	}
 
 	// Get Mount Provider
 	m, err := mount.GetMountProvider()
