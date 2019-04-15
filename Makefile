@@ -190,7 +190,7 @@ images: image-controller-manager image-flex-volume-driver image-provisioner imag
 image-controller-manager: depend openstack-cloud-controller-manager
 ifeq ($(GOOS),linux)
 	cp openstack-cloud-controller-manager cluster/images/controller-manager
-	docker build -t $(REGISTRY)/openstack-cloud-controller-manager:$(VERSION) cluster/images/controller-manager
+	sudo docker build -t $(REGISTRY)/openstack-cloud-controller-manager:$(VERSION) cluster/images/controller-manager
 	rm cluster/images/controller-manager/openstack-cloud-controller-manager
 else
 	$(error Please set GOOS=linux for building the image)
@@ -199,7 +199,7 @@ endif
 image-flex-volume-driver: depend cinder-flex-volume-driver
 ifeq ($(GOOS),linux)
 	cp cinder-flex-volume-driver cluster/images/flex-volume-driver
-	docker build -t $(REGISTRY)/cinder-flex-volume-driver:$(VERSION) cluster/images/flex-volume-driver
+	sudo docker build -t $(REGISTRY)/cinder-flex-volume-driver:$(VERSION) cluster/images/flex-volume-driver
 	rm cluster/images/flex-volume-driver/cinder-flex-volume-driver
 else
 	$(error Please set GOOS=linux for building the image)
@@ -208,7 +208,7 @@ endif
 image-provisioner: depend cinder-provisioner
 ifeq ($(GOOS),linux)
 	cp cinder-provisioner cluster/images/cinder-provisioner
-	docker build -t $(REGISTRY)/cinder-provisioner:$(VERSION) cluster/images/cinder-provisioner
+	sudo docker build -t $(REGISTRY)/cinder-provisioner:$(VERSION) cluster/images/cinder-provisioner
 	rm cluster/images/cinder-provisioner/cinder-provisioner
 else
 	$(error Please set GOOS=linux for building the image)
@@ -217,7 +217,7 @@ endif
 image-csi-plugin: depend cinder-csi-plugin
 ifeq ($(GOOS),linux)
 	cp cinder-csi-plugin cluster/images/cinder-csi-plugin
-	docker build -t $(REGISTRY)/cinder-csi-plugin:$(VERSION) cluster/images/cinder-csi-plugin
+	sudo docker build -t $(REGISTRY)/cinder-csi-plugin:$(VERSION) cluster/images/cinder-csi-plugin
 	rm cluster/images/cinder-csi-plugin/cinder-csi-plugin
 else
 	$(error Please set GOOS=linux for building the image)
@@ -226,7 +226,7 @@ endif
 image-k8s-keystone-auth: depend k8s-keystone-auth
 ifeq ($(GOOS),linux)
 	cp k8s-keystone-auth cluster/images/webhook
-	docker build -t $(REGISTRY)/k8s-keystone-auth:$(VERSION) cluster/images/webhook
+	sudo docker build -t $(REGISTRY)/k8s-keystone-auth:$(VERSION) cluster/images/webhook
 	rm cluster/images/webhook/k8s-keystone-auth
 else
 	$(error Please set GOOS=linux for building the image)
@@ -235,7 +235,7 @@ endif
 image-octavia-ingress-controller: depend octavia-ingress-controller
 ifeq ($(GOOS),linux)
 	cp octavia-ingress-controller cluster/images/octavia-ingress-controller
-	docker build -t $(REGISTRY)/octavia-ingress-controller:$(VERSION) cluster/images/octavia-ingress-controller
+	sudo docker build -t $(REGISTRY)/octavia-ingress-controller:$(VERSION) cluster/images/octavia-ingress-controller
 	rm cluster/images/octavia-ingress-controller/octavia-ingress-controller
 else
 	$(error Please set GOOS=linux for building the image)
@@ -244,7 +244,7 @@ endif
 image-manila-provisioner: depend manila-provisioner
 ifeq ($(GOOS),linux)
 	cp manila-provisioner cluster/images/manila-provisioner
-	docker build -t $(REGISTRY)/manila-provisioner:$(VERSION) cluster/images/manila-provisioner
+	sudo docker build -t $(REGISTRY)/manila-provisioner:$(VERSION) cluster/images/manila-provisioner
 	rm cluster/images/manila-provisioner/manila-provisioner
 else
 	$(error Please set GOOS=linux for building the image)
@@ -252,14 +252,14 @@ endif
 
 upload-images: images
 	@echo "push images to $(REGISTRY)"
-	docker login -u="$(DOCKER_USERNAME)" -p="$(DOCKER_PASSWORD)";
-	docker push $(REGISTRY)/openstack-cloud-controller-manager:$(VERSION)
-	docker push $(REGISTRY)/cinder-flex-volume-driver:$(VERSION)
-	docker push $(REGISTRY)/cinder-provisioner:$(VERSION)
-	docker push $(REGISTRY)/cinder-csi-plugin:$(VERSION)
-	docker push $(REGISTRY)/k8s-keystone-auth:$(VERSION)
-	docker push $(REGISTRY)/octavia-ingress-controller:$(VERSION)
-	docker push $(REGISTRY)/manila-provisioner:$(VERSION)
+	sudo docker login -u="$(DOCKER_USERNAME)" -p="$(DOCKER_PASSWORD)";
+	sudo docker push $(REGISTRY)/openstack-cloud-controller-manager:$(VERSION)
+	sudo docker push $(REGISTRY)/cinder-flex-volume-driver:$(VERSION)
+	sudo docker push $(REGISTRY)/cinder-provisioner:$(VERSION)
+	sudo docker push $(REGISTRY)/cinder-csi-plugin:$(VERSION)
+	sudo docker push $(REGISTRY)/k8s-keystone-auth:$(VERSION)
+	sudo docker push $(REGISTRY)/octavia-ingress-controller:$(VERSION)
+	sudo docker push $(REGISTRY)/manila-provisioner:$(VERSION)
 
 version:
 	@echo ${VERSION}
